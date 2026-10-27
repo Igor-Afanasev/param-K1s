@@ -1,0 +1,34 @@
+﻿Option Explicit
+
+Private Sub Workbook_Open()
+    ParameterCards.InstallParameterCards
+End Sub
+
+Private Sub Workbook_SheetChange(ByVal Sh As Object, ByVal Target As Range)
+    Dim inputs As Range
+    If Not IsParameterSearchSheet(Sh) Then Exit Sub
+    On Error GoTo SafeExit
+    Set inputs = Application.Union( _
+        Me.Names("Search_Source").RefersToRange, _
+        Me.Names("Search_Size").RefersToRange, _
+        Me.Names("Search_Filter").RefersToRange)
+    If Application.Intersect(Target, inputs) Is Nothing Then Exit Sub
+    ParameterCards.UpdateParameterImages
+SafeExit:
+End Sub
+
+Private Sub Workbook_SheetCalculate(ByVal Sh As Object)
+    If IsParameterSearchSheet(Sh) Then ParameterCards.EnsureParameterImages
+End Sub
+
+Private Sub Workbook_SheetActivate(ByVal Sh As Object)
+    If IsParameterSearchSheet(Sh) Then ParameterCards.EnsureParameterImages
+End Sub
+
+Private Function IsParameterSearchSheet(ByVal Sh As Object) As Boolean
+    Dim search As Worksheet
+    On Error GoTo NotSearchSheet
+    Set search = Me.Names("Search_Source").RefersToRange.Worksheet
+    If Sh Is search Then IsParameterSearchSheet = True
+NotSearchSheet:
+End Function
